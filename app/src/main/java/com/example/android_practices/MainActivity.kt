@@ -3,17 +3,21 @@ package com.example.android_practices
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.material3.MaterialTheme
+import com.example.android_practices.di.AppContainer
+import com.example.android_practices.ui.factory.AppViewModelFactory
 import com.example.android_practices.ui.navigation.AppNavigation
-import com.example.android_practices.ui.theme.AndroidPracticesTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val appContainer = AppContainer(applicationContext)
+        val factory = AppViewModelFactory(appContainer)
+
         setContent {
-            AndroidPracticesTheme {
-                AppNavigation()
+            MaterialTheme {
+                AppNavigation(factory)
             }
         }
     }

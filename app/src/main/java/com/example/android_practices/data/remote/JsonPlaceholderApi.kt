@@ -8,7 +8,10 @@ import retrofit2.http.Query
 
 interface JsonPlaceholderApi {
     @GET("posts")
-    suspend fun getPosts(@Query("_limit") limit: Int): List<PostDto>
+    suspend fun getPosts(
+        @Query("_limit") limit: Int,
+        @Query("userId") userId: Int? = null
+    ): List<PostDto>
 
     @GET("posts/{id}")
     suspend fun getPostById(@Path("id") postId: Int): PostDto
