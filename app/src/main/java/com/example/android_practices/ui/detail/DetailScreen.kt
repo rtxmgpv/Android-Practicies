@@ -4,6 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,24 +26,48 @@ import com.example.android_practices.ui.factory.AppViewModelFactory
 fun DetailScreen(
     postId: Int,
     navController: NavController,
-    viewModel: DetailViewModel = viewModel(factory = AppViewModelFactory())
+    factory: AppViewModelFactory,
+    viewModel: DetailViewModel = viewModel(factory = factory)
 ) {
     LaunchedEffect(postId) {
         viewModel.loadDetails(postId)
     }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // Подписываемся на статус избранного из Room
+    val isFavorite by viewModel.observeIsFavorite(postId).collectAsStateWithLifecycle(initialValue = false)
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(
-            text = "← Назад",
-            modifier = Modifier.clickable { navController.popBackStack() },
-            color = MaterialTheme.colorScheme.primary
-        )
+        // Верхняя панель с кнопкой Назад и Сердечком
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "← Назад",
+                modifier = Modifier.clickable { navController.popBackStack() },
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            IconButton(onClick = {
+                val currentState = uiState
+                if (currentState is UiState.Success) {
+                    viewModel.toggleFavorite(currentState.data.post, isFavorite)
+                }
+            }) {
+                Icon(
+                    imageVector = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                    contentDescription = "Избранное",
+                    tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+
         Spacer(Modifier.height(8.dp))
 
         when (val state = uiState) {
@@ -56,7 +83,6 @@ fun DetailScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(text = "Ошибка: ${state.message}", color = MaterialTheme.colorScheme.error)
-                    // Можно добавить кнопку повтора, если нужно
                 }
             }
             is UiState.Success -> {
